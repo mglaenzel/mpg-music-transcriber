@@ -1,0 +1,7 @@
+# Cloned external repo (re-clone: git clone https://github.com/ZFTurbo/Music-Source-Separation-Training.git msst)
+msst/
+# Downloaded model checkpoints (~78MB each, see README.md for download command)
+checkpoints/
+# Test audio in/out — regenerate as needed, not source material
+test_input/
+test_output/
