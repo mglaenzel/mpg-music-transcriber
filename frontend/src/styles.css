@@ -1,0 +1,431 @@
+:root {
+  color-scheme: dark;
+  --bg: #101216;
+  --panel: #1a1d24;
+  --accent: #2dd4bf;
+  --text: #e6e8eb;
+  --text-dim: #9aa0a8;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.app__header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.app__header p {
+  color: var(--text-dim);
+  margin-top: 0;
+}
+
+.app__back {
+  background: none;
+  border: 1px solid #3a3f4a;
+  border-radius: 8px;
+  color: var(--text);
+  padding: 0.4rem 0.8rem;
+  margin-top: 0.75rem;
+  cursor: pointer;
+}
+
+.job-library {
+  margin-top: 2rem;
+}
+
+.job-library h2 {
+  font-size: 1rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.job-library__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.job-library__item {
+  width: 100%;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid #2a2e37;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.job-library__item:hover {
+  border-color: var(--accent);
+}
+
+.job-library__filename {
+  font-weight: 600;
+}
+
+.job-library__meta {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.upload-panel__genre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.upload-panel__genre select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #3a3f4a;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.95rem;
+}
+
+.dropzone {
+  border: 2px dashed #3a3f4a;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--panel);
+}
+
+.dropzone--active {
+  border-color: var(--accent);
+}
+
+.dropzone__title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.dropzone__subtitle,
+.dropzone__hint {
+  color: var(--text-dim);
+}
+
+.upload-panel__error {
+  color: #f87171;
+}
+
+.job-progress {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.job-progress__bar {
+  height: 8px;
+  border-radius: 4px;
+  background: #2a2e37;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.job-progress__bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.job-progress__error {
+  color: #f87171;
+}
+
+/* Fixed at the top of the viewport so playback stays reachable even while
+   the cursor-follow behavior auto-scrolls deep into a long score. */
+.transport-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--panel);
+  border-bottom: 1px solid #2a2e37;
+  padding: 0.6rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.transport-bar__play {
+  background: var(--accent);
+  color: #0a0c0f;
+  border: none;
+  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.transport-bar__time {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.transport-bar__seek {
+  flex: 1;
+  min-width: 80px;
+}
+
+.transport-bar__menu-toggle {
+  background: none;
+  border: 1px solid #3a3f4a;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1.1rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.options-menu {
+  position: fixed;
+  top: 3.25rem;
+  right: 1rem;
+  z-index: 99;
+  width: min(360px, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid #2a2e37;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.options-menu h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.options-menu__downloads {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.options-menu a {
+  color: var(--accent);
+}
+
+.measures-per-system-slider {
+  width: 100%;
+}
+
+.pdf-download-button {
+  margin-top: 0.5rem;
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.pdf-download-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pdf-download-error {
+  margin-top: 0.5rem;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.bpm-correction__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bpm-correction__buttons button {
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.bpm-correction__buttons button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.bpm-correction__buttons input[type="number"] {
+  width: 7rem;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #3a3f4a;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.bpm-correction__status {
+  margin-top: 0.5rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.bpm-correction__error {
+  margin-top: 0.5rem;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.transpose-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.transpose-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.transpose-track__label {
+  font-size: 0.9rem;
+}
+
+.transpose-track__value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.transpose-track select,
+.transpose-track__rename {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #3a3f4a;
+  border-radius: 6px;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.transpose-track__rename {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.transpose-track__rename::placeholder {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.tempo-display {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.tempo-display--compact {
+  font-size: 0.85rem;
+}
+
+.tempo-display__term {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.tempo-display__time-sig {
+  color: var(--text-dim);
+}
+
+.instrument-toggles,
+.audio-source-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.instrument-toggle {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+  /* Whole pill is clickable, not just the tiny native checkbox square —
+     that checkbox was reported as fiddly/hard to hit precisely. */
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #3a3f4a;
+  background: var(--panel);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.instrument-toggle:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel));
+}
+
+.instrument-toggle input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.score-viewer__sheet {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 400px;
+  margin-top: 3.75rem;
+  /* Break out of .app's 1100px reading-width constraint: with 6 dense
+     instrument staves, fitting 4 measures/system needs real horizontal
+     room, not prose-width. "100vw, pulled back to center" is the standard
+     full-bleed-inside-a-centered-container trick. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  box-sizing: border-box;
+}

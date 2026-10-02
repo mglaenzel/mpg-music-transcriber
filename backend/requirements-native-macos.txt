@@ -1,0 +1,11 @@
+# Extra/override deps for running the backend natively on macOS (Apple
+# Silicon) instead of in Docker — see README "Variante B". Installs on top
+# of requirements.txt:
+#   uv pip install -r requirements.txt -r requirements-native-macos.txt
+#
+# basic-pitch ships with no inference backend by default; on Linux/Docker
+# pip resolves a working one implicitly, but on macOS you need to pick one
+# explicitly. CoreML runs Basic Pitch's model on the Apple Neural
+# Engine/GPU instead of the CPU.
+-r requirements.txt
+basic-pitch[coreml]

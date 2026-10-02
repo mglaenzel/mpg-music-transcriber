@@ -1,0 +1,28 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+pydantic-settings==2.5.2
+
+# resampy (a basic-pitch dependency) still imports pkg_resources, which
+# setuptools removed as of 81. Pin below that until resampy drops the import.
+setuptools<81
+
+# Audio / MIR
+librosa==0.10.2.post1
+soundfile==0.12.1
+numpy==1.26.4
+
+# Source separation
+demucs==4.0.1
+torch==2.4.1
+torchaudio==2.4.1
+
+# Pitched-instrument transcription
+basic-pitch==0.4.0
+
+# Notation / export
+music21==9.1.0
+mido==1.3.2
+
+# Lyrics (speech-to-text on the isolated vocals stem)
+faster-whisper==1.2.1
