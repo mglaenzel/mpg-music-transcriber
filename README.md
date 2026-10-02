@@ -785,3 +785,39 @@ Separations-Modelle für Jazz-/Bläser-Besetzungen evaluieren — dafür
 zuerst Git-Repo einrichten und einen Branch aufmachen, damit der
 aktuelle (für Jazz unvollkommene, aber funktionierende) Stand erhalten
 bleibt.
+
+**Achtzehnte Runde — Basic-Pitch-Parameter pro Instrument getunt**
+(2026-10-02, erste Runde im neu eingerichteten Git-Repo, Branch `main`):
+
+- Bisher lief Basic Pitch (`backend/app/pipeline/transcription/pitched.py`)
+  für alle Instrumente mit reinen Default-Parametern. Jetzt gibt es ein
+  Profil pro `InstrumentTrackType` (Vocals/Piano/Gitarre/Bass/Sonstige/
+  Strings/Winds), das drei Stellschrauben gezielt setzt:
+  - `minimum_frequency`/`maximum_frequency`: schränkt den Suchraum des
+    Modells von vornherein auf den plausiblen Tonumfang des Instruments
+    ein (aus denselben Werten wie `local_provider._PLAUSIBLE_MIDI_RANGE`
+    abgeleitet, das als Nachfilter weiterhin bestehen bleibt) — das soll
+    v.a. Oktav-/Oberton-Fehler bei der schwachen Grundfrequenz einer
+    Bassline reduzieren, nicht nur Ausreißer nachträglich wegfiltern.
+  - `melodia_trick`: **aus** für polyphone Instrumente (Piano, Gitarre),
+    **an** für monophone (Vocals, Bass, Sonstige/Strings/Winds). Direkte
+    Lehre aus der siebzehnten Runde (Sax-Trennungs-Experimente, siehe
+    `separation-model-experiments`-Branch): `melodia_trick` bevorzugt
+    gezielt eine einzelne durchgehende Melodielinie und unterdrückt damit
+    nachweislich echte Gleichzeitigkeit — für ein Klavier mit Akkorden
+    ist das kontraproduktiv, für eine monophone Gesangsstimme dagegen
+    hilfreich (reduziert z.B. Oktav-Verdopplung).
+  - `onset_threshold`: für Vocals leicht abgesenkt (0.4 statt 0.5), da
+    gesungene Töne oft weich/legato einsetzen statt mit scharfem Attack.
+- Verifiziert: Vergleich alt/neu auf bereits getrennten Stems zeigt
+  plausible, moderate Verschiebungen (z.B. Piano 1112→1023 Notenereignisse,
+  Vocals 342→368) — keine Ausreißer, die auf einen Konfigurationsfehler
+  hindeuten würden. Kompletter End-to-End-Durchlauf (neuer Upload,
+  komplette Pipeline inkl. Demucs) fehlerfrei, PDF-Export optisch
+  unauffällig (dichte, aber saubere Klavier-Akkorde — passend zu
+  `melodia_trick=False`).
+- Keine Vorher-Nachher-Genauigkeitsmessung gegen eine echte Partitur
+  möglich in dieser Runde (kein Testsong mit Originalnoten griffbereit,
+  bei dem sich die neuen Parameter von den alten unterscheiden sollten) —
+  die Änderungen sind fundiert begründet (siehe oben), aber die tatsächliche
+  Genauigkeits-Verbesserung ist noch nicht mit Ground Truth verifiziert.

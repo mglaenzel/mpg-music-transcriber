@@ -64,7 +64,7 @@ class LocalTranscriptionProvider:
             if stem_name == "drums":
                 notes = transcribe_drum_stem(stem_path)
             else:
-                notes = transcribe_pitched_stem(stem_path)
+                notes = transcribe_pitched_stem(stem_path, instrument)
                 notes = _filter_outlier_pitches(notes, instrument)
 
             results.append(
