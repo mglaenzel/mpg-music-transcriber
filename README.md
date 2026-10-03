@@ -821,3 +821,142 @@ bleibt.
   bei dem sich die neuen Parameter von den alten unterscheiden sollten) —
   die Änderungen sind fundiert begründet (siehe oben), aber die tatsächliche
   Genauigkeits-Verbesserung ist noch nicht mit Ground Truth verifiziert.
+
+**Neunzehnte Runde — Ground-Truth-Validierung des Basic-Pitch-Tunings,
+plus OMR-Vergleich (oemer vs. Audiveris)** (2026-10-02):
+
+- Testsong mit echter Ground Truth gefunden: "In ritm de Jazz" (Andrei
+  Baicoianu), Alto Sax/Piano/Bass/Drums. Vom Nutzer bereitgestellt: Original-
+  MP3, echte Noten-PDF (7 Seiten, nicht gemeinfrei — nur intern zur Analyse
+  verwendet, nicht reproduziert) und ein Band-in-a-Box-generiertes MIDI
+  (8 Spuren inkl. "Melody (BB)" = Alto-Sax-Linie) als präzise Ground Truth.
+  (Ein erster Versuch mit "In A Sentimental Mood"-Noten scheiterte, da sich
+  die vom Nutzer gefundene Partitur als andere, generische Bigband-Fassung
+  herausstellte, nicht die tatsächlich transkribierte Aufnahme — nur
+  Tempo/Tonart ließen sich damit noch sinnvoll gegenprüfen.)
+- Methodik: eigene Pipeline einmal komplett durchlaufen lassen
+  (`storage/jobs/3cc3cbd1-...`), pro Instrument-Stem das exportierte
+  `part.mid` gegen die Ground-Truth-MIDI-Spuren verglichen. Zeitversatz
+  zwischen beiden Zeitachsen (~1,85s) nicht geschätzt, sondern über
+  Kreuzkorrelation der Onset-Zeitreihen exakt bestimmt (Korrelations-Peak
+  355 vs. Mittelwert 16,25, >20-fach über Rauschen).
+- Ergebnis:
+  - **Tempo (89 BPM) und Tonart (As-Dur, 4 b) exakt korrekt erkannt.**
+  - **Bass: sehr stark** — 82% exakte Tonhöhentreffer bei ±0,15s Toleranz,
+    97,7% bei ±0,25s, 93,9% Tonklassentreffer (oktavfrei). Bestätigt, dass
+    das gezielte Bass-Tuning aus der 18. Runde (enger Frequenzbereich,
+    `melodia_trick=True`) greift.
+  - **Piano: mittelmäßig** — 52–59% exakte Treffer. Geprüfte Precision
+    (28% der von uns erkannten Klavier-Noten finden überhaupt eine
+    Entsprechung in der Ground Truth, vs. 43% bei Bass) legt nahe, dass
+    Basic Pitch bei polyphonem Klavier spürbar mehr Noten "erfindet"
+    (Akkorde, Obertöne, Pedal-Resonanz) als bei monophonen Instrumenten —
+    plausibel, aber noch nicht weiter diagnostiziert.
+  - **Melodie (Alto Sax): schwach** — nur 12–20% Treffer gegen den
+    kombinierten Vocals+Sonstige-Pool (kein eigener Bläser-Stem
+    vorhanden). Das ist keine neue Erkenntnis, sondern die erste konkrete
+    Zahl für das schon aus der 17. Runde bekannte strukturelle Problem:
+    `htdemucs_6s` hat keine eigene Stem-Klasse für Blasinstrumente, das
+    Sax-Signal verteilt sich auf andere Stems.
+- Daraus resultierende Zusatzfrage (Nutzerwunsch): ob sich aus der
+  mitgelieferten Noten-PDF per Optical Music Recognition (OMR) eine
+  zweite, unabhängige Ground-Truth-Quelle extrahieren ließe — als
+  Machbarkeitscheck für eine mögliche künftige "Noten aus PDF
+  einlesen"-Funktion. Zwei OMR-Tools getestet:
+  - **oemer** (Python/ONNX, `pip install --target` in isoliertem
+    Ordner, kein Projekt-Dependency): lief auf diesem Mac zunächst
+    dreimal nicht durch (NumPy: `np.int` entfernt; OpenCV 5 ändert das
+    Rückgabe-Shape von `HoughLinesP`, bricht oemers Doppel-Indexierung;
+    Zielordner für den Export wird von oemer nicht selbst angelegt) —
+    alle drei Bugs in der isolierten Testkopie provisorisch gepatcht, bis
+    es durchlief. Ergebnis trotzdem **unbrauchbar**: nur 2 Systeme statt
+    4 erkannt (beide fälschlich "Piano" benannt), Tonhöhen musikalisch
+    unsinnig (u.a. C#7 als erste Note, wilde Mischung aus Kreuz- und
+    B-Vorzeichen innerhalb einer einzigen Tonart). oemer ist primär auf
+    klassische Klaviernoten mit gleichförmigem Systemlayout trainiert und
+    kommt mit dem gemischten 4-System-Layout (Sax/Klavier-Akkolade/
+    Bass/Schlagzeug) nicht zurecht. Seit Jahren kaum gepflegtes
+    Forschungsprojekt, daher auch die Versions-Inkompatibilitäten.
+  - **Audiveris** (Java, aktiv gepflegt, `.dmg`-Release bringt eigene
+    JRE mit — kein separates JDK nötig, kein Systeminstall: `.dmg`
+    gemountet, `Audiveris.app` nach `/tmp` kopiert, direkt per
+    `java -cp ".../app/*" Audiveris -batch -export"` aufgerufen): lief
+    sofort stabil durch, exportiert plausible 5-Systeme-Struktur, Tonart
+    exakt korrekt (4 b). Gegen dieselbe Ground-Truth-MIDI geprüft (mit
+    per Brute-Force-Suche gefundenem Zeitversatz, da Audiveris' eigene
+    Takt-/Tempo-Lesung leicht driftet): Bass-Stimme korrekt als separate
+    Stimme erkannt (Grundton-Quinte-Muster passend zu Fm7), aber
+    durchgehend eine Oktave zu hoch gelesen (46–50% Tonklassentreffer,
+    nur 12% bei exakter Oktave); Melodie 25–40% Treffer (Schwankung je
+    nach angenommenem Zeitversatz, bedingt durch leichte Rhythmus-
+    Ungenauigkeiten bei Synkopen/Triolen — im Audiveris-Log auch selbst
+    als "Measure too long"-Warnungen sichtbar).
+  - **Fazit:** Audiveris liefert strukturell und musikalisch sinnvolle,
+    wenn auch fehlerbehaftete Ergebnisse (typische, bekannte OMR-
+    Fehlerklassen: Oktavfehler, kleine Rhythmusungenauigkeiten) — eine
+    realistische Grundlage für eine künftige PDF-Noten-Funktion, aber
+    kein Quick-Add (Java-Abhängigkeit, Nachbearbeitung nötig). oemer ist
+    für diese Art von Mehrinstrumenten-Notenbild nicht geeignet.
+  - GPU-Beschleunigung geprüft: oemer nutzt bereits automatisch
+    onnxruntimes `CoreMLExecutionProvider`, aber nur für ~6% der
+    Netzwerk-Knoten (102 von 1577) — der Rest läuft auf CPU, da oemers
+    U-Net-Architektur Operationen enthält, die CoreML nicht unterstützt.
+    Das erklärt die Laufzeit (~15-20 Min/Seite) unabhängig von Mac-GPU/
+    Neural-Engine-Verfügbarkeit; eine "reine GPU-Version" gibt es dafür
+    nicht, ohne das Modell neu zu exportieren.
+- Piano-Precision-Nachfrage: `minimum_note_length` für Piano von Basic
+  Pitchs Default (127,7ms) auf 180ms angehoben
+  ([`pitched.py`](backend/app/pipeline/transcription/pitched.py)), um
+  kurze Falsch-Positive (Pedal-/Resonanz-Artefakte) zu filtern. Per
+  Parameter-Sweep (127,7/180/200/250/300ms) gegen dieselbe Ground-Truth-
+  MIDI gemessen: Precision steigt von 28–30% auf max. ~35%, deckelt dort
+  unabhängig vom Wert, während Recall kontinuierlich einbricht (54%→41%).
+  180ms gewählt als Punkt mit noch vertretbarem Recall-Verlust. Die
+  Deckelung selbst zeigt: kurze Spontan-Noten sind nicht die
+  Haupt­ursache der Piano-Precision — vermutlich Oktav-/Oberton-
+  Verdopplung, die genauso lang klingt wie die echte Note und sich
+  dadurch nicht herausfiltern lässt.
+
+**Zwanzigste Runde — Grenzen der Melodie-Transkription für Blasinstrumente
+abschließend geklärt, Produkt-Scope-Entscheidung** (2026-10-03):
+
+- Ausgangsfrage (Nutzer): sind wir mit frei verfügbaren Mitteln überhaupt
+  in der Lage, aus einer MP3 ein realitätsnahes Notenblatt zu erzeugen —
+  oder sollten wir das Projekt in der aktuellen Form beenden? Keine
+  weiteren Vermutungen, nur Messungen.
+- Drei weitere, unabhängige Trennungsansätze für die Alto-Sax-Melodie des
+  Baicoianu-Testsongs quantitativ gegen die MIDI-Ground-Truth geprüft
+  (exakt dieselbe Methodik wie in der 19. Runde: Noten extrahieren, per
+  Kreuzkorrelation zeitlich ausrichten, Precision/Recall messen):
+  - **BS-Roformer** (MVSep Mega 53 Stems, dedizierter `saxophone`-
+    Checkpoint, Setup aus dem `separation-model-experiments`-Branch
+    wiederverwendet; läuft über Apple-GPU/MPS, ~6,5 Min für den ganzen
+    Song): 7,9% exakte Treffer, 15,6% zusätzlich exakt eine Oktave zu
+    tief (korrigierbar), **76,2% ohne jede Entsprechung** — selbst mit
+    Oktavkorrektur maximal 23,8% Tonklassentreffer. Precision 8,1%.
+  - **UVR VR-Architektur** (`17_HP-Wind_Inst-UVR.pth`, dedizierter
+    `woodwinds`-Stem, über `audio-separator`-Paket, kostenlos/lokal,
+    ~49s für den ganzen Song — deutlich schneller als BS-Roformer,
+    aber qualitativ schwächer): 4,3% exakte Treffer, **88,0% ohne jede
+    Entsprechung**. Precision 5,6%.
+  - Zusätzlich recherchiert (nicht selbst getestet, da Account-Anlage bei
+    Drittdiensten nicht zulässig): kommerzielle APIs mit explizitem
+    Wind-Instruments-Stem existieren (LALAL.AI, Moises) — ob sie
+    tatsächlich besser abschneiden, bleibt offen, da ungeprüft.
+- Damit liegen jetzt **sechs unabhängige Messpunkte** für die
+  Melodiestimme vor (Demucs generisch, BS-Roformer, UVR-VR, zwei OMR-
+  Tools, dazu die frühere Zwei-Saxophon-Recherche im
+  `separation-model-experiments`-Branch) — keiner über ~25%, zwei
+  davon mit Modellen, die speziell für genau dieses Problem gebaut
+  wurden. Das ist keine Tuning-Frage mehr, sondern eine Grenze der
+  heute frei verfügbaren Trennungs- und Transkriptionsmodelle für diese
+  Art von Aufnahme (alte, vermutlich mono gemischte Jazz-Aufnahme,
+  Blasinstrument-Obertöne überlappen stark mit Klavier/Bass).
+- **Entscheidung (Nutzer):** Projekt-Scope ehrlich einschränken statt
+  beenden. Die Pipeline bleibt wie sie ist — sie liefert für
+  Gesang/Bass/Klavier/Gitarre/Schlagzeug (Tempo/Tonart 100%, Bass
+  82–98%, Piano ~50% Recall) einen alltagstauglichen Nutzen. Für
+  Blasinstrumente/Jazz-Soli als Melodieträger bleibt manuelle
+  Nachkorrektur nötig — das ist eine bekannte, durch Messung belegte,
+  mit heutigen Mitteln nicht lösbare Grenze, keine Qualitätslücke der
+  eigenen Implementierung.

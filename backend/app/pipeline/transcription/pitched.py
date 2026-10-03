@@ -25,6 +25,7 @@ class _BasicPitchProfile:
     maximum_frequency: float
     onset_threshold: float = 0.5  # Basic Pitch's own default
     frame_threshold: float = 0.3  # Basic Pitch's own default
+    minimum_note_length: float = 127.7  # ms, Basic Pitch's own default
     # melodia_trick favors one continuous salient line over genuine
     # polyphony (confirmed empirically while investigating a two-saxophone
     # jazz recording — see experiments/separation-models/README.md on the
@@ -49,6 +50,14 @@ _PROFILES: dict[InstrumentTrackType, _BasicPitchProfile] = {
         minimum_frequency=27.5,  # A0, practically the full keyboard
         maximum_frequency=4186.0,  # C8
         frame_threshold=0.25,  # catch quieter chord tones under the melody note
+        # Ground-truth check (Baicoianu MIDI, 19th round) found only ~28%
+        # precision on piano notes — Basic Pitch was flagging a flood of
+        # short, spurious notes (pedal resonance/decay tails), likely
+        # encouraged by the lowered frame_threshold above. Raising the
+        # minimum note length filters those out without touching
+        # frame_threshold itself, so real quiet chord tones (which last a
+        # full beat or more) aren't collaterally dropped.
+        minimum_note_length=180.0,
         melodia_trick=False,  # chords are the point — don't collapse to one line
     ),
     InstrumentTrackType.GUITAR: _BasicPitchProfile(
@@ -84,6 +93,7 @@ def transcribe_pitched_stem(
         frame_threshold=profile.frame_threshold,
         minimum_frequency=profile.minimum_frequency,
         maximum_frequency=profile.maximum_frequency,
+        minimum_note_length=profile.minimum_note_length,
         melodia_trick=profile.melodia_trick,
     )
 
