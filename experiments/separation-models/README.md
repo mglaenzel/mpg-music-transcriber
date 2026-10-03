@@ -130,3 +130,54 @@ erreichen, bevor Streaming (Abschnitt 3) nochmal versucht wird — z.B. ein
 Modell, das gezielt zwischen Sax/Trompete/Posaune trennt (nicht nur
 Sax-vs-Rest), um Obertöne benachbarter Blechbläser aus der Sax-Spur
 fernzuhalten.
+
+## 4. Nachtrag: zweiter Testsong mit nur *einer* Melodiestimme (kein
+Zwei-Spieler-Problem) — Ergebnis trotzdem schlecht
+
+Der obige Befund (Abschnitt 1) betrifft explizit das **Zwei-Spieler-
+Problem** (zwei gleichzeitige Saxophone trennen). Im Projekt-README
+(Hauptbranch, 19./20. Runde) wurde mit einem zweiten Testsong — "In
+ritm de Jazz" (Andrei Baicoianu), nur **eine** Alto-Sax-Melodiestimme,
+dazu eine echte Band-in-a-Box-MIDI als Ground Truth — genau dieser
+"nächste Ansatzpunkt" geprüft: reicht ein dedizierter Bläser-Stem (statt
+Demucs' "Sonstige"-Topf), wenn das Zwei-Spieler-Problem gar nicht
+vorliegt?
+
+**Ergebnis: nein, nicht wesentlich besser.**
+
+- **BS-Roformer** (derselbe `saxophone`-Checkpoint wie oben, jetzt auf
+  dem Baicoianu-Song): nur 7,9% exakte Notentreffer gegen die MIDI-
+  Ground-Truth, 76,2% ganz ohne Entsprechung (selbst mit Oktavkorrektur
+  nur 23,8%). Precision 8,1% — schlechter als die 11,6% der *generischen*
+  Demucs-"Sonstige"-Spur im selben Vergleich.
+- **UVR VR-Architektur** (`17_HP-Wind_Inst-UVR.pth`, dedizierter
+  `woodwinds`-Stem, über das `audio-separator`-Paket — kostenlos, lokal,
+  ~49s für den ganzen Song, deutlich schneller als BS-Roformer):
+  **noch schlechter** — 4,3% exakte Treffer, 88,0% ganz ohne
+  Entsprechung, Precision 5,6%.
+
+**Reproduzieren (UVR, zusätzlich zum Setup aus Abschnitt 1):**
+```bash
+cd experiments/separation-models
+uv venv --python 3.11 uvr_venv
+uv pip install -p uvr_venv/bin/python "audio-separator[cpu]" imageio-ffmpeg
+ln -sf "$(pwd)/uvr_venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries/ffmpeg-macos-aarch64-v7.1" uvr_venv/bin/ffmpeg
+chmod +x uvr_venv/bin/ffmpeg  # kein Homebrew/ffmpeg nötig, Binary kommt aus dem Python-Paket
+export PATH="$(pwd)/uvr_venv/bin:$PATH"
+source uvr_venv/bin/activate
+audio-separator <song>.mp3 -m "17_HP-Wind_Inst-UVR.pth" --single_stem woodwinds --output_dir uvr_output
+```
+
+**Fazit des Nachtrags:** Selbst wenn das ursprüngliche Zwei-Spieler-
+Problem gar nicht vorliegt (nur eine Melodiestimme), bringt ein
+dedizierter Bläser-Stem — egal ob Transformer-basiert (BS-Roformer) oder
+klassisches VR-Spektrogramm-Modell (UVR) — **keine** verwertbare
+Verbesserung gegenüber der generischen Demucs-Trennung. Beide
+spezialisierten Modelle lagen sogar unter der Baseline. Das spricht
+dafür, dass das Grundproblem nicht (nur) "falscher Stem-Typ" ist,
+sondern eher in der Aufnahmequalität selbst liegt (alte, vermutlich
+mono gemischte Jazz-Aufnahme, Obertöne von Sax/Klavier/Bass überlappen
+stark) — unabhängig vom eingesetzten Trennungsmodell. Damit ist auch
+der "nächste Ansatzpunkt" aus dem ursprünglichen Fazit oben als Sackgasse
+belegt, nicht nur vermutet. Volle Messmethodik und weitere Zahlen:
+Projekt-README, 19./20. Runde.
